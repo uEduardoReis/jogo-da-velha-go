@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .cell {
+            transition: background-color 0.3s, transform 0.3s;
+            width: 100px; /* Ajuste o tamanho das células */
+            height: 100px; /* Ajuste o tamanho das células */
+            line-height: 100px; /* Centralize o texto verticalmente */
+            font-size: 3rem; /* Ajuste o tamanho da fonte */
+            text-align: center; /* Centralize o texto horizontalmente */
+            cursor: pointer;
+            position: relative;
+        }
+        .cell:hover {
+            background-color: #c6f6d5; /* Verde claro ao passar o mouse */
+            transform: scale(1.05);
+        }
+        .cell.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+            background-color: #e2e8f0; /* Cinza claro para células desativadas */
+        }
+        .x {
+            color: #38a169; /* Verde esmeralda para X */
+        }
+        .o {
+            color: #3182ce; /* Azul escuro para O */
+        }
+        .game-container {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 16px; /* Cantos mais arredondados */
+            background-color: #ffffff;
+            padding: 30px; /* Aumentar o preenchimento */
+            max-width: 500px; /* Aumentar a largura máxima */
+            width: 100%;
+            position: relative; /* Adicionar posição relativa para a linha de vitória */
+        }
+        .reset-button {
+            background-color: #38a169; /* Verde esmeralda */
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px; /* Aumentar o preenchimento */
+            font-size: 1.25rem; /* Aumentar o tamanho da fonte */
+            cursor: pointer;
+            border-radius: 8px;
+            margin-top: 20px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .reset-button:hover {
+            background-color: #2f855a; /* Verde esmeralda mais escuro */
+        }
+        .reset-button:disabled {
+            background-color: #e2e8f0; /* Cinza claro para o estado desativado */
+            cursor: not-allowed;
+        }
+        .win-line {
+            position: absolute;
+            background-color: #38a169; /* Verde esmeralda */
+            z-index: 1;
+            pointer-events: none; /* Ignorar eventos do mouse */
+            transform-origin: 0 0; /* Origem da transformação */
+        }
+    </style>
+</head>
+<body class="bg-gray-200 flex items-center justify-center h-screen">
+    <div class="game-container text-center">
+        <h1 class="text-5xl font-extrabold text-green-600 mb-6">Tic Tac Toe</h1>
+        <table id="board" class="w-full border-separate border-spacing-0 mx-auto"></table>
+        <p id="status" class="mt-6 text-2xl font-semibold text-red-600"></p>
+        <button id="reset" onclick="resetGame()" class="reset-button">Reiniciar Jogo</button>
+        <div id="win-line" class="win-line"></div> <!-- Linha de vitória -->
+    </div>
+
+    <script>
+        function fetchBoard() {
+            fetch('/api/board')
+                .then(response => response.json())
+                .then(data => {
+                    updateBoard(data.board);
+                    updateStatus(data.winner, data.line);
+                })
+                .catch(error => console.error('Error fetching board:', error));
+        }
+
+        function updateBoard(board) {
+            const boardHtml = board.map((row, rowIndex) =>
+                `<tr>${row.map((cell, colIndex) =>
+                    `<td onclick="makeMove(${rowIndex}, ${colIndex})" class="cell border-4 border-green-500 ${cell === 'X' ? 'x' : (cell === 'O' ? 'o' : '')} ${cell ? 'disabled' : ''}">
+                        ${cell || ''}
+                    </td>`
+                ).join('')}</tr>`
+            ).join('');
+            document.getElementById('board').innerHTML = boardHtml;
+        }
+
+        function updateStatus(winner, line) {
+            const statusElement = document.getElementById('status');
+            const winLineElement = document.getElementById('win-line');
+            if (winner) {
+                statusElement.innerText = winner === 'Draw' ? 'Empate!' : `Vencedor: ${winner}`;
+                disableBoard(); // Desativar o tabuleiro
+                drawWinLine(line); // Desenhar linha de vitória
+            } else {
+                statusElement.innerText = '';
+                winLineElement.style.width = '0'; // Ocultar linha de vitória
+            }
+        }
+
+        function disableBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.classList.add('disabled');
+                cell.removeAttribute('onclick'); // Remover o atributo onclick para prevenir novos cliques
+            });
+        }
+
+        function drawWinLine(line) {
+            const winLineElement = document.getElementById('win-line');
+            if (!line) {
+                winLineElement.style.width = '0';
+                return;
+            }
+            const { type, start, end } = line;
+            let x1, y1, x2, y2;
+            const cellSize = 100; // Tamanho das células
+            switch (type) {
+                case 'row':
+                    x1 = start[1] * cellSize + cellSize / 2; 
+                    y1 = start[0] * cellSize + cellSize / 2; 
+                    x2 = end[1] * cellSize + cellSize / 2;
+                    y2 = y1; 
+                    break;
+                case 'col':
+                    x1 = start[1] * cellSize + cellSize / 2;
+                    y1 = start[0] * cellSize + cellSize / 2;
+                    x2 = x1; 
+                    y2 = end[0] * cellSize + cellSize / 2;
+                    break;
+                case 'diag1':
+                    x1 = start[1] * cellSize + cellSize / 2;
+                    y1 = start[0] * cellSize + cellSize / 2;
+                    x2 = end[1] * cellSize + cellSize / 2;
+                    y2 = end[0] * cellSize + cellSize / 2;
+                    break;
+                case 'diag2':
+                    x1 = start[1] * cellSize + cellSize / 2;
+                    y1 = start[0] * cellSize + cellSize / 2;
+                    x2 = end[1] * cellSize + cellSize / 2;
+                    y2 = end[0] * cellSize + cellSize / 2;
+                    break;
+                default:
+                    return;
+            }
+            // Ajustar a posição e rotação da linha
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            winLineElement.style.left = `${Math.min(x1, x2)}px`;
+            winLineElement.style.top = `${Math.min(y1, y2)}px`;
+            winLineElement.style.width = `${length}px`;
+            winLineElement.style.height = '4px'; 
+            winLineElement.style.transform = `rotate(${angle}deg)`;
+        }
+
+        function makeMove(row, col) {
+            fetch(`/api/play?row=${row}&col=${col}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(() => fetchBoard())
+                .catch(error => console.error('Error making move:', error));
+        }
+
+        function resetGame() {
+            fetch('/api/reset', { method: 'POST' })
+                .then(response => response.json())
+                .then(() => fetchBoard())
+                .catch(error => console.error('Error resetting game:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchBoard);
+    </script>
+</body>
+</html>
