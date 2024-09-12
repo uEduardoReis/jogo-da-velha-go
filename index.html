@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/x-icon" href="./images/icone.png">
+    <link rel="shortcut icon" type="image/x-icon" href="./velha.png">
     <title>Jogo da Velha</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -12,85 +12,91 @@
         }
 
         h1 {
-            color: rgb(98, 154, 204); /* Título usando a cor cinza azul */
+            color: rgb(98, 154, 204); /* Cor do título */
         }
 
         h2 {
-            color: rgb(98, 154, 204); /* Subtítulo usando a cor cinza azul */
+            color: rgb(98, 154, 204); /* Cor do subtítulo */
         }
 
         .game-container {
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-            border-radius: 16px; /* Cantos mais arredondados */
-            background-color: #ffffff; /* Cor de fundo do container do jogo */
-            padding: 30px; /* Aumentar o preenchimento */
-            max-width: 500px; /* Aumentar a largura máxima */
-            width: 100%;
-            position: relative; /* Manter a posição relativa para a linha de vitória */
+            border-radius: 16px; /* Cantos arredondados */
+            background-color: #ffffff; /* Cor do fundo do jogo */
+            padding: 30px; /* Preenchimento */
+            width: 500px; /* Largura fixa */
+            height: 680px; /* Altura fixa */
+            position: relative; /* Para a linha de vitória */
             display: inline-block;
             vertical-align: top;
+            overflow: hidden; /* Ocultar conteúdo que ultrapassa */
         }
 
         .status-container {
             display: inline-block;
-            vertical-align: middle; /* Alinhamento vertical no centro */
-            margin-left: 20px; /* Espaço entre o tabuleiro e o status */
+            vertical-align: middle; /* Alinhar verticalmente */
+            margin-left: 20px; /* Espaço entre tabuleiro e status */
             text-align: center;
-            padding: 20px; /* Ajustar o preenchimento */
+            padding: 20px; /* Preenchimento */
             background-color: #ffffff;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             border-radius: 16px;
-            max-width: 150px; /* Largura máxima para o status */
-            height: auto; /* Ajustar a altura automaticamente */
+            max-width: 150px; /* Largura máxima */
+            height: auto; /* Altura automática */
             line-height: 1.5;
         }
 
         .cell {
             transition: background-color 0.3s, transform 0.3s;
             width: 100px; /* Tamanho das células */
-            height: 100px; /* Tamanho das células (igual à largura para garantir que sejam quadradas) */
-            line-height: 100px; /* Centralize o texto verticalmente */
-            font-size: 3rem; /* Ajuste o tamanho da fonte */
-            text-align: center; /* Centralize o texto horizontalmente */
+            height: 140px; /* Altura das células */
+            line-height: 100px; /* Centralizar texto verticalmente */
+            font-size: 3rem; /* Tamanho da fonte */
+            text-align: center; /* Centralizar texto horizontalmente */
             cursor: pointer;
             position: relative;
-            box-sizing: border-box; /* Inclui padding e borda no tamanho total do elemento */
-            border: 4px solid rgb(98, 154, 204); /* Borda azul claro para células */
+            box-sizing: border-box; /* Incluir padding e borda no tamanho */
+            border: 4px solid rgb(98, 154, 204); /* Borda azul claro */
         }
 
         .cell:hover {
-            background-color: rgb(178, 220, 255); /* Azul claro ao passar o mouse */
+            background-color: rgb(178, 220, 255); /* Cor ao passar o mouse */
             transform: scale(1.05);
         }
 
         .cell.disabled {
             pointer-events: none;
             opacity: 0.6;
-            background-color: rgb(224, 230, 241); /* Cinza claro para células desativadas */
+            background-color: rgb(224, 230, 241); /* Cor para células desativadas */
+        }
+
+        .cell.highlighted {
+            background-color: #ffeb3b; /* Cor de destaque */
+            color: #ffffff; /* Cor do texto para contraste */
         }
 
         .x {
-            color: rgb(233, 65, 65); /* Vermelho para X */
+            color: rgb(233, 65, 65); /* Cor para X */
         }
 
         .o {
-            color: rgb(0, 134, 244); /* Azul para O */
+            color: rgb(0, 134, 244); /* Cor para O */
         }
 
         .current-x {
-            color: rgb(233, 65, 65); /* Vermelho para X quando é o turno de X */
+            color: rgb(233, 65, 65); /* Cor para X quando é o turno de X */
         }
 
         .current-o {
-            color: rgb(0, 134, 244); /* Azul para O quando é o turno de O */
+            color: rgb(0, 134, 244); /* Cor para O quando é o turno de O */
         }
 
         .reset-button {
-            background-color: rgb(98, 154, 204); /* Azul claro para o botão de reinício */
+            background-color: rgb(98, 154, 204); /* Cor de fundo do botão */
             color: #ffffff;
             border: none;
-            padding: 14px 28px; /* Aumentar o preenchimento */
-            font-size: 1.25rem; /* Aumentar o tamanho da fonte */
+            padding: 14px 28px; /* Preenchimento */
+            font-size: 1.25rem; /* Tamanho da fonte */
             cursor: pointer;
             border-radius: 8px;
             margin-top: 20px;
@@ -98,24 +104,16 @@
         }
 
         .reset-button:hover {
-            background-color: rgb(72, 122, 161); /* Azul mais escuro para o botão de reinício ao passar o mouse */
+            background-color: rgb(72, 122, 161); /* Cor ao passar o mouse */
         }
 
         .reset-button:disabled {
-            background-color: rgb(224, 230, 241); /* Cinza claro para o estado desativado */
+            background-color: rgb(224, 230, 241); /* Cor para botão desativado */
             cursor: not-allowed;
         }
 
-        .win-line {
-            position: absolute;
-            background-color: rgb(233, 65, 65); /* Vermelho para a linha de vitória */
-            z-index: 1;
-            pointer-events: none; /* Ignorar eventos do mouse */
-            transform-origin: 0 0; /* Origem da transformação */
-        }
-
         #current-turn {
-            font-size: 2rem; /* Tamanho da fonte reduzido */
+            font-size: 2rem; /* Tamanho da fonte */
             font-weight: bold; /* Negrito */
         }
     </style>
@@ -126,7 +124,6 @@
         <table id="board" class="w-full border-separate border-spacing-0 mx-auto"></table>
         <p id="status" class="current-x mt-6 text-2xl font-semibold"></p>
         <button id="reset" onclick="resetGame()" class="reset-button">Reiniciar Jogo</button>
-        <div id="win-line" class="win-line"></div> <!-- Linha de vitória -->
     </div>
     <div class="status-container">
         <h2 class="text-3xl font-bold mb-4">Atual</h2>
@@ -134,15 +131,14 @@
     </div>
 
     <script>
-        let currentTurn = 'X'; // Estado inicial da peça atual
+        let currentTurn = 'X'; // Estado inicial
 
         function fetchBoard() {
             fetch('/api/board')
                 .then(response => response.json())
                 .then(data => {
                     updateBoard(data.board);
-                    updateStatus(data.winner, data.line);
-                    // Atualizar a peça atual com base no estado atual do jogo
+                    updateStatus(data.winner);
                     updateCurrentTurn();
                 })
                 .catch(error => console.error('Error fetching board:', error));
@@ -159,31 +155,25 @@
             document.getElementById('board').innerHTML = boardHtml;
         }
 
-        function updateStatus(winner, line) {
+        function updateStatus(winner) {
             const statusElement = document.getElementById('status');
-            const winLineElement = document.getElementById('win-line');
             if (winner) {
                 statusElement.innerText = winner === 'Draw' ? 'Empate!' : `Vencedor: ${winner}`;
-                disableBoard(); // Desativar o tabuleiro
-                drawWinLine(line); // Desenhar linha de vitória
+                disableBoard(); // Desativa o tabuleiro
             } else {
                 statusElement.innerText = '';
-                winLineElement.style.width = '0'; // Ocultar linha de vitória
             }
         }
 
         function updateCurrentTurn() {
-            const statusElement = document.getElementById('status');
             const currentTurnElement = document.getElementById('current-turn');
+            const statusElement = document.getElementById('status');
             
-            // Atualiza o texto da peça atual
             currentTurnElement.innerText = currentTurn;
 
-            // Remove as classes de cor antigas
             statusElement.classList.remove('current-x', 'current-o');
             currentTurnElement.classList.remove('current-x', 'current-o');
 
-            // Adiciona a classe correspondente ao turno atual
             if (currentTurn === 'X') {
                 currentTurnElement.classList.add('current-x');
                 statusElement.classList.add('current-o');
@@ -197,64 +187,16 @@
             const cells = document.querySelectorAll('.cell');
             cells.forEach(cell => {
                 cell.classList.add('disabled');
-                cell.removeAttribute('onclick'); // Remover o atributo onclick para prevenir novos cliques
+                cell.removeAttribute('onclick'); // Remove onclick
             });
-        }
-
-        function drawWinLine(line) {
-            const winLineElement = document.getElementById('win-line');
-            if (!line) {
-                winLineElement.style.width = '0';
-                return;
-            }
-            const { type, start, end } = line;
-            let x1, y1, x2, y2;
-            const cellSize = 100; // Tamanho das células
-
-            switch (type) {
-                case 'row':
-                    x1 = start[1] * cellSize + cellSize / 2;
-                    y1 = start[0] * cellSize + cellSize / 2;
-                    x2 = end[1] * cellSize + cellSize / 2;
-                    y2 = y1;
-                    break;
-                case 'col':
-                    x1 = start[1] * cellSize + cellSize / 2;
-                    y1 = start[0] * cellSize + cellSize / 2;
-                    x2 = x1;
-                    y2 = end[0] * cellSize + cellSize / 2;
-                    break;
-                case 'diag1':
-                    x1 = start[1] * cellSize + cellSize / 2;
-                    y1 = start[0] * cellSize + cellSize / 2;
-                    x2 = end[1] * cellSize + cellSize / 2;
-                    y2 = end[0] * cellSize + cellSize / 2;
-                    break;
-                case 'diag2':
-                    x1 = start[1] * cellSize + cellSize / 2;
-                    y1 = start[0] * cellSize + cellSize / 2;
-                    x2 = end[1] * cellSize + cellSize / 2;
-                    y2 = end[0] * cellSize + cellSize / 2;
-                    break;
-                default:
-                    return;
-            }
-
-            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-            winLineElement.style.left = `${Math.min(x1, x2) - 1}px`; // Ajustar o alinhamento horizontal
-            winLineElement.style.top = `${Math.min(y1, y2) - 1}px`; // Ajustar o alinhamento vertical
-            winLineElement.style.width = `${length + 2}px`; // Ajustar o comprimento
-            winLineElement.style.height = '4px';
-            winLineElement.style.transform = `rotate(${angle}deg)`;
         }
 
         function makeMove(row, col) {
             fetch(`/api/play?row=${row}&col=${col}`, { method: 'POST' })
                 .then(response => response.json())
                 .then(() => {
-                    currentTurn = currentTurn === 'X' ? 'O' : 'X'; // Alternar o turno
-                    fetchBoard(); // Atualizar o tabuleiro após a jogada
+                    currentTurn = currentTurn === 'X' ? 'O' : 'X'; // Alterna o turno
+                    fetchBoard(); // Atualiza o tabuleiro
                 })
                 .catch(error => console.error('Error making move:', error));
         }
@@ -263,8 +205,8 @@
             fetch('/api/reset', { method: 'POST' })
                 .then(response => response.json())
                 .then(() => {
-                    currentTurn = 'X'; // Reiniciar o turno para 'X'
-                    fetchBoard(); // Atualizar o tabuleiro após reiniciar o jogo
+                    currentTurn = 'X'; // Reinicia o turno
+                    fetchBoard(); // Atualiza o tabuleiro
                 })
                 .catch(error => console.error('Error resetting game:', error));
         }

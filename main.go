@@ -8,38 +8,38 @@ import (
 )
 
 var (
-	board = [3][3]string{}
-	turn  = "X"
-	lock  sync.Mutex
+	board  = [3][3]string{}
+	turn   = "X"
+	winner = ""
+	lock   sync.Mutex
 )
 
-func main() {
-	http.HandleFunc("/api/board", getBoard)
-	http.HandleFunc("/api/play", playMove)
-	http.HandleFunc("/api/reset", resetGame)
-	http.Handle("/", http.FileServer(http.Dir("."))) // Serve static files from the current directory
-	http.ListenAndServe(":8080", nil)
-}
-
-// Struct for the board response
 type BoardResponse struct {
 	Board  [3][3]string `json:"board"`
 	Winner string       `json:"winner"`
 }
 
-// Returns the current state of the board and the winner
+func main() {
+	http.HandleFunc("/api/board", getBoard)
+	http.HandleFunc("/api/play", playMove)
+	http.HandleFunc("/api/reset", resetGame)
+	http.Handle("/", http.FileServer(http.Dir("."))) // Serve arquivos estáticos
+	http.ListenAndServe(":8080", nil)
+}
+
+// Retorna o estado atual do tabuleiro e o vencedor
 func getBoard(w http.ResponseWriter, r *http.Request) {
 	lock.Lock()
 	defer lock.Unlock()
 	response := BoardResponse{
 		Board:  board,
-		Winner: checkWinner(),
+		Winner: winner,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-// Processes a move and returns the updated board
+// Processa uma jogada e retorna o tabuleiro atualizado
 func playMove(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	rowStr := r.FormValue("row")
@@ -52,35 +52,42 @@ func playMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lock.Lock()
-	if board[row][col] == "" && checkWinner() == "" {
+	if board[row][col] == "" && winner == "" {
 		board[row][col] = turn
-		turn = map[string]string{"X": "O", "O": "X"}[turn]
+		if checkWinner() != "" {
+			winner = turn
+		} else if checkDraw() {
+			winner = "Draw"
+		} else {
+			turn = map[string]string{"X": "O", "O": "X"}[turn]
+		}
 	}
 	lock.Unlock()
 
-	getBoard(w, r) // Return the updated board and winner
+	getBoard(w, r) // Retorna o tabuleiro e vencedor atualizados
 }
 
-// Resets the game board
+// Reseta o tabuleiro do jogo
 func resetGame(w http.ResponseWriter, r *http.Request) {
 	lock.Lock()
 	board = [3][3]string{}
 	turn = "X"
+	winner = ""
 	lock.Unlock()
 
-	getBoard(w, r) // Return the initial empty board and no winner
+	getBoard(w, r) // Retorna o tabuleiro vazio e sem vencedor
 }
 
-// Check if there is a winner or if it's a draw
+// Verifica se há um vencedor ou empate
 func checkWinner() string {
 	lines := [][3][2]int{
-		{{0, 0}, {0, 1}, {0, 2}}, // Rows
+		{{0, 0}, {0, 1}, {0, 2}}, // Linhas
 		{{1, 0}, {1, 1}, {1, 2}},
 		{{2, 0}, {2, 1}, {2, 2}},
-		{{0, 0}, {1, 0}, {2, 0}}, // Columns
+		{{0, 0}, {1, 0}, {2, 0}}, // Colunas
 		{{0, 1}, {1, 1}, {2, 1}},
 		{{0, 2}, {1, 2}, {2, 2}},
-		{{0, 0}, {1, 1}, {2, 2}}, // Diagonals
+		{{0, 0}, {1, 1}, {2, 2}}, // Diagonais
 		{{0, 2}, {1, 1}, {2, 0}},
 	}
 	for _, line := range lines {
@@ -93,9 +100,20 @@ func checkWinner() string {
 	for _, row := range board {
 		for _, cell := range row {
 			if cell == "" {
-				return "" // The game is still ongoing
+				return "" // Jogo ainda em andamento
 			}
 		}
 	}
-	return "Draw" // All cells are filled and no winner
+	return "Draw" // Empate
+}
+
+func checkDraw() bool {
+	for _, row := range board {
+		for _, cell := range row {
+			if cell == "" {
+				return false
+			}
+		}
+	}
+	return true
 }
