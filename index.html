@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
+    <title>Jogo da Velha</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .cell {
@@ -23,7 +23,7 @@
         .cell.disabled {
             pointer-events: none;
             opacity: 0.6;
-            background-color: #e2e8f0; /* Cinza claro para células desativadas */
+            background-color: #ffffff; /* Cinza claro para células desativadas */
         }
         .x {
             color: #38a169; /* Verde esmeralda para X */
@@ -55,7 +55,7 @@
             background-color: #2f855a; /* Verde esmeralda mais escuro */
         }
         .reset-button:disabled {
-            background-color: #e2e8f0; /* Cinza claro para o estado desativado */
+            background-color: #ffffff; /* Cinza claro para o estado desativado */
             cursor: not-allowed;
         }
         .win-line {
